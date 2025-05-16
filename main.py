@@ -34,14 +34,14 @@ def calculate():
             steps.append(f"Resultado final: {definite_result}")
             return jsonify({
                 'result': str(definite_result),
-                'steps': '<br/>'.join(steps)
+                'steps': '<br/><br/>'.join(steps)
             })
         else:
             result = integrate(expr, x)
             steps.append(f"Resultado: ∫ {expr} dx = {result} + C")
             return jsonify({
                 'result': str(result) + ' + C',
-                'steps': '<br/>'.join(steps)
+                'steps': '<br/><br/>'.join(steps)
             })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
