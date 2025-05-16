@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Integrales Básicas</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #eef3fb;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2b3a67;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.3rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #4b6cb7;
+      color: white;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
+    img#graph {
+      margin-top: 1.5rem;
+      display: none;
+      max-width: 100%;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Integrales Básicas</h1>
+
+    <label for="functionInput">Función a integrar:</label>
+    <input type="text" id="functionInput" placeholder="Ej: x^2 + 4*x">
+
+    <label for="limits">Límites (opcional, ej: 0,2):</label>
+    <input type="text" id="limits" placeholder="Ej: 0,2">
+
+    <button onclick="calculateIntegral()">Calcular</button>
+
+    <div id="result">Resultado: </div>
+
+    <img id="graph" src="" alt="Gráfica de la integral" />
+  </div>
+
+  <script>
+    async function calculateIntegral() {
+      const func = document.getElementById('functionInput').value;
+      const limits = document.getElementById('limits').value;
+      const resultDiv = document.getElementById('result');
+      const graphImg = document.getElementById('graph');
+
+      resultDiv.innerHTML = 'Calculando...';
+      graphImg.style.display = 'none';
+
+      try {
+        const res = await fetch('/integrate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ function: func, limits: limits })
+        });
+
+        const data = await res.json();
+        if (data.error) {
+          resultDiv.innerHTML = '❌ Error: ' + data.error;
+          return;
+        }
+
+        resultDiv.innerHTML = `<b>Resultado:</b> ${data.result}<br/><b>Paso a paso:</b><br/>${data.steps}`;
+
+        const graphRes = await fetch('/graph', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ function: func, limits: limits })
+        });
+
+        if (!graphRes.ok) throw new Error("No se pudo generar la gráfica");
+        const blob = await graphRes.blob();
+        const url = URL.createObjectURL(blob);
+        graphImg.src = url;
+        graphImg.style.display = 'block';
+
+      } catch (err) {
+        resultDiv.innerHTML = '❌ No se pudo conectar con el servidor.';
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
