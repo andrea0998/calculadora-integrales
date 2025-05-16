@@ -94,7 +94,7 @@
           return;
         }
 
-        resultDiv.innerHTML = `<b>Resultado:</b> ${data.result}<br/><b>Paso a paso:</b><br/>${data.steps}`;
+        resultDiv.innerHTML = `<b>Resultado:</b> ${data.result}<br/><br/><b>Paso a paso:</b><br/>${data.steps}`;
 
         const graphRes = await fetch('/graph', {
           method: 'POST',
