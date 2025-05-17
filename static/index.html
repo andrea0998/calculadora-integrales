@@ -74,6 +74,7 @@
       </small>
     </label>
     <input type="text" id="limits" placeholder="Ej: 0,1;0,2;0,3">
+    <p id="limites-ayuda" style="font-size: 0.85rem; color: #555;"></p>
 
     <button onclick="calculateIntegral()">Calcular</button>
 
@@ -83,6 +84,19 @@
   </div>
 
   <script>
+    document.getElementById('tipo').addEventListener('change', () => {
+      const tipo = document.getElementById('tipo').value;
+      const ayuda = document.getElementById('limites-ayuda');
+    
+      if (tipo === 'simple') {
+        ayuda.innerHTML = 'Opcional: escribe dos valores separados por coma (ej: <code>0,2</code>)';
+      } else if (tipo === 'doble') {
+        ayuda.innerHTML = 'Obligatorio: escribe dos pares de límites (ej: <code>0,1;0,2</code>)';
+      } else if (tipo === 'triple') {
+        ayuda.innerHTML = 'Obligatorio: escribe tres pares de límites (ej: <code>0,1;0,2;0,3</code>)';
+      }
+    });
+
     async function calculateIntegral() {
       const func = document.getElementById('functionInput').value;
       const limits = document.getElementById('limits').value;
