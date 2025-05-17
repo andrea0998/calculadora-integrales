@@ -15,6 +15,79 @@ def home():
     return send_from_directory('static', 'index.html')
 
 @app.route('/integrate', methods=['POST'])
+
+def generar_pasos_integral_doble(expr_str, xlim, ylim):
+    from sympy import symbols, sympify, integrate, lambdify
+
+    x, y = symbols('x y')
+    expr = sympify(expr_str)
+
+    a, b = map(float, xlim)
+    c, d = map(float, ylim)
+
+    Fx = integrate(expr, x)
+    pasos = [f"Paso 1: Integrar respecto a x: ∫ {expr} dx = {Fx}"]
+
+    Fx_lambda = lambdify(x, Fx, 'numpy')
+    Fxb = Fx_lambda(b)
+    Fxa = Fx_lambda(a)
+    Fx_def = Fxb - Fxa
+    pasos.append(f"Evaluar en x = [{a}, {b}]: F({b}) - F({a}) = {Fxb} - {Fxa} = {Fx_def}")
+
+    Fy = integrate(Fx_def, y)
+    pasos.append(f"Paso 2: Integrar respecto a y: ∫ {Fx_def} dy = {Fy}")
+
+    Fy_lambda = lambdify(y, Fy, 'numpy')
+    Fyd = Fy_lambda(d)
+    Fyc = Fy_lambda(c)
+    Fy_def = Fyd - Fyc
+    pasos.append(f"Evaluar en y = [{c}, {d}]: F({d}) - F({c}) = {Fyd} - {Fyc} = {Fy_def}")
+
+    pasos.append(f"Resultado final: {Fy_def}")
+    return pasos, Fy_def
+
+def generar_pasos_integral_triple(expr_str, xlim, ylim, zlim):
+    from sympy import symbols, sympify, integrate, lambdify
+
+    x, y, z = symbols('x y z')
+    expr = sympify(expr_str)
+
+    a, b = map(float, xlim)
+    c, d = map(float, ylim)
+    e, f = map(float, zlim)
+
+    pasos = []
+
+    # Paso 1: integrar respecto a x
+    Fx = integrate(expr, x)
+    pasos.append(f"Paso 1: Integrar respecto a x: ∫ {expr} dx = {Fx}")
+    Fx_lambda = lambdify(x, Fx, 'numpy')
+    Fxb = Fx_lambda(b)
+    Fxa = Fx_lambda(a)
+    Fx_def = Fxb - Fxa
+    pasos.append(f"Evaluar en x = [{a}, {b}]: F({b}) - F({a}) = {Fxb} - {Fxa} = {Fx_def}")
+
+    # Paso 2: integrar respecto a y
+    Fy = integrate(Fx_def, y)
+    pasos.append(f"Paso 2: Integrar respecto a y: ∫ {Fx_def} dy = {Fy}")
+    Fy_lambda = lambdify(y, Fy, 'numpy')
+    Fyd = Fy_lambda(d)
+    Fyc = Fy_lambda(c)
+    Fy_def = Fyd - Fyc
+    pasos.append(f"Evaluar en y = [{c}, {d}]: F({d}) - F({c}) = {Fyd} - {Fyc} = {Fy_def}")
+
+    # Paso 3: integrar respecto a z
+    Fz = integrate(Fy_def, z)
+    pasos.append(f"Paso 3: Integrar respecto a z: ∫ {Fy_def} dz = {Fz}")
+    Fz_lambda = lambdify(z, Fz, 'numpy')
+    Fzf = Fz_lambda(f)
+    Fze = Fz_lambda(e)
+    Fz_def = Fzf - Fze
+    pasos.append(f"Evaluar en z = [{e}, {f}]: F({f}) - F({e}) = {Fzf} - {Fze} = {Fz_def}")
+
+    pasos.append(f"Resultado final: {Fz_def}")
+    return pasos, Fz_def
+
 def calculate():
     data = request.json
     tipo = data.get('tipo', 'simple')
@@ -54,32 +127,41 @@ def calculate():
                 })
 
         elif tipo == 'doble':
-            limits = data['limits'].split(';')
-            if len(limits) != 2:
-                return jsonify({'error': 'Debes proporcionar 2 pares de límites para integral doble (ej: a,b;c,d)'}), 400
-            try:
-                a, b = map(sympify, limits[0].split(','))
-                c, d = map(sympify, limits[1].split(','))
-                result = integrate(expr, (x, a, b), (y, c, d))
-                steps.append(f"Resultado: ∬ {expr} dx dy = {result}")
-                return jsonify({'result': str(result), 'steps': '<br/><br/>'.join(steps)})
-            except:
-                return jsonify({'error': 'Los límites de integración doble son inválidos'}), 400
+        limits = data['limits'].split(';')
+        if len(limits) != 2:
+            return jsonify({'error': 'Debes proporcionar 2 pares de límites para integral doble (ej: a,b;c,d)'}), 400
+        try:
+            a, b = map(sympify, limits[0].split(','))
+            c, d = map(sympify, limits[1].split(','))
+    
+            pasos, resultado = generar_pasos_integral_doble(data['function'], (a, b), (c, d))
+            return jsonify({
+                'result': str(resultado),
+                'steps': '<br/><br/>'.join(pasos)
+            })
+    
+        except Exception as e:
+            return jsonify({'error': f'Límites inválidos o error en cálculo: {e}'}), 400
+
 
 
         elif tipo == 'triple':
-            limits = data['limits'].split(';')
-            if len(limits) != 3:
-                return jsonify({'error': 'Debes proporcionar 3 pares de límites para integral triple (ej: a,b;c,d;e,f)'}), 400
-            try:
-                a, b = map(sympify, limits[0].split(','))
-                c, d = map(sympify, limits[1].split(','))
-                e, f = map(sympify, limits[2].split(','))
-                result = integrate(expr, (x, a, b), (y, c, d), (z, e, f))
-                steps.append(f"Resultado: ∭ {expr} dx dy dz = {result}")
-                return jsonify({'result': str(result), 'steps': '<br/><br/>'.join(steps)})
-            except:
-                return jsonify({'error': 'Los límites de integración triple son inválidos'}), 400
+        limits = data['limits'].split(';')
+        if len(limits) != 3:
+            return jsonify({'error': 'Debes proporcionar 3 pares de límites para integral triple (ej: a,b;c,d;e,f)'}), 400
+        try:
+            a, b = map(sympify, limits[0].split(','))
+            c, d = map(sympify, limits[1].split(','))
+            e, f = map(sympify, limits[2].split(','))
+    
+            pasos, resultado = generar_pasos_integral_triple(data['function'], (a, b), (c, d), (e, f))
+            return jsonify({
+                'result': str(resultado),
+                'steps': '<br/><br/>'.join(pasos)
+            })
+    
+        except Exception as e:
+            return jsonify({'error': f'Límites inválidos o error en cálculo: {e}'}), 400
 
 
         else:
