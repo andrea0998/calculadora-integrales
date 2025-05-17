@@ -27,7 +27,7 @@
       margin-top: 1rem;
       font-weight: bold;
     }
-    input, button {
+    input, select, button {
       width: 100%;
       padding: 0.75rem;
       margin-top: 0.3rem;
@@ -108,17 +108,22 @@
 
         resultDiv.innerHTML = `<b>Resultado:</b> ${data.result}<br/><br/><b>Paso a paso:</b><br/>${data.steps}`;
 
-        const graphRes = await fetch('/graph', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ function: func, limits: limits })
-        });
+        // Solo generar gráfica si es integral simple
+        if (tipo === 'simple') {
+          const graphRes = await fetch('/graph', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ function: func, limits: limits })
+          });
 
-        if (!graphRes.ok) throw new Error("No se pudo generar la gráfica");
-        const blob = await graphRes.blob();
-        const url = URL.createObjectURL(blob);
-        graphImg.src = url;
-        graphImg.style.display = 'block';
+          if (!graphRes.ok) throw new Error("No se pudo generar la gráfica");
+          const blob = await graphRes.blob();
+          const url = URL.createObjectURL(blob);
+          graphImg.src = url;
+          graphImg.style.display = 'block';
+        } else {
+          graphImg.style.display = 'none';
+        }
 
       } catch (err) {
         resultDiv.innerHTML = '❌ No se pudo conectar con el servidor.';
