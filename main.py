@@ -17,34 +17,43 @@ def home():
 @app.route('/integrate', methods=['POST'])
 def calculate():
     data = request.json
-    try:
-        expr = sympify(data['function'])
-        steps = []
-        steps.append(f"Función a integrar: ∫ {expr} dx")
+    tipo = data.get('tipo', 'simple')
+    expr = sympify(data['function'])
+    steps = []
+    result = None
 
-        if 'limits' in data and data['limits']:
-            a, b = map(sympify, data['limits'].split(','))
-            result_expr = integrate(expr, x)
-            steps.append(f"Paso 1: F(x) = ∫ {expr} dx = {result_expr}")
-            F = lambdify(x, result_expr, 'numpy')
-            Fa = F(float(a))
-            Fb = F(float(b))
-            steps.append(f"Paso 2: F({b}) - F({a}) = {Fb} - {Fa}")
-            definite_result = Fb - Fa
-            steps.append(f"Resultado final: {definite_result}")
-            return jsonify({
-                'result': str(definite_result),
-                'steps': '<br/>'.join(steps)
-            })
-        else:
+    try:
+        if tipo == 'simple':
             result = integrate(expr, x)
             steps.append(f"Resultado: ∫ {expr} dx = {result} + C")
-            return jsonify({
-                'result': str(result) + ' + C',
-                'steps': '<br/>'.join(steps)
-            })
+        elif tipo == 'doble':
+            y = symbols('y')
+            # Requiere 2 pares de límites: "a,b;c,d"
+            limits = data['limits'].split(';')
+            a, b = map(sympify, limits[0].split(','))
+            c, d = map(sympify, limits[1].split(','))
+            result = integrate(expr, (x, a, b), (y, c, d))
+            steps.append(f"Resultado: ∬ {expr} dx dy = {result}")
+        elif tipo == 'triple':
+            y, z = symbols('y z')
+            # Requiere 3 pares de límites: "a,b;c,d;e,f"
+            limits = data['limits'].split(';')
+            a, b = map(sympify, limits[0].split(','))
+            c, d = map(sympify, limits[1].split(','))
+            e, f = map(sympify, limits[2].split(','))
+            result = integrate(expr, (x, a, b), (y, c, d), (z, e, f))
+            steps.append(f"Resultado: ∭ {expr} dx dy dz = {result}")
+        else:
+            return jsonify({'error': 'Tipo de integral no soportado'}), 400
+
+        return jsonify({
+            'result': str(result),
+            'steps': '<br/><br/>'.join(steps)
+        })
+
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
 
 @app.route('/graph', methods=['POST'])
 def graph():
