@@ -66,7 +66,8 @@ def graph():
         Y = f(X)
 
         fig, ax = plt.subplots()
-        ax.plot(X, Y, label=f"F(x) = ∫({expr}) dx", color='green')
+        ax.plot(X, Y, label=f"F(x) = {integral_result}", color='green')
+
 
         # Si es definida, marcar los límites
         if show_limits:
