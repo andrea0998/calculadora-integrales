@@ -97,7 +97,7 @@
         const res = await fetch('/integrate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ function: func, limits: limits, , tipo: tipo })
+          body: JSON.stringify({ function: func, limits: limits, tipo: tipo })
         });
 
         const data = await res.json();
