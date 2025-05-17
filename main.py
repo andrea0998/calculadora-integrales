@@ -14,7 +14,6 @@ CORS(app)
 def home():
     return send_from_directory('static', 'index.html')
 
-@app.route('/integrate', methods=['POST'])
 
 def generar_pasos_integral_doble(expr_str, xlim, ylim):
     from sympy import symbols, sympify, integrate, lambdify
@@ -88,6 +87,7 @@ def generar_pasos_integral_triple(expr_str, xlim, ylim, zlim):
     pasos.append(f"Resultado final: {Fz_def}")
     return pasos, Fz_def
 
+@app.route('/integrate', methods=['POST'])
 def calculate():
     data = request.json
     tipo = data.get('tipo', 'simple')
@@ -139,10 +139,6 @@ def calculate():
                 'result': str(resultado),
                 'steps': '<br/><br/>'.join(pasos)
             })
-    
-        except Exception as e:
-            return jsonify({'error': f'Límites inválidos o error en cálculo: {e}'}), 400
-
 
 
         elif tipo == 'triple':
@@ -159,10 +155,6 @@ def calculate():
                 'result': str(resultado),
                 'steps': '<br/><br/>'.join(pasos)
             })
-    
-        except Exception as e:
-            return jsonify({'error': f'Límites inválidos o error en cálculo: {e}'}), 400
-
 
         else:
             return jsonify({'error': 'Tipo de integral no soportado'}), 400
