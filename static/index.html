@@ -58,11 +58,22 @@
   <div class="container">
     <h1>Calculadora de Integrales Básicas</h1>
 
+    <label for="tipo">Tipo de integral:</label>
+    <select id="tipo">
+      <option value="simple">Simple</option>
+      <option value="doble">Doble</option>
+      <option value="triple">Triple</option>
+    </select>
+
     <label for="functionInput">Función a integrar:</label>
     <input type="text" id="functionInput" placeholder="Ej: x^2 + 4*x">
 
-    <label for="limits">Límites (opcional, ej: 0,2):</label>
-    <input type="text" id="limits" placeholder="Ej: 0,2">
+    <label for="limits">Límites:<br/>
+      <small>
+        Simple: <code>a,b</code> &nbsp;&nbsp; Doble: <code>a,b;c,d</code> &nbsp;&nbsp; Triple: <code>a,b;c,d;e,f</code>
+      </small>
+    </label>
+    <input type="text" id="limits" placeholder="Ej: 0,1;0,2;0,3">
 
     <button onclick="calculateIntegral()">Calcular</button>
 
@@ -75,6 +86,7 @@
     async function calculateIntegral() {
       const func = document.getElementById('functionInput').value;
       const limits = document.getElementById('limits').value;
+      const tipo = document.getElementById('tipo').value;
       const resultDiv = document.getElementById('result');
       const graphImg = document.getElementById('graph');
 
@@ -85,7 +97,7 @@
         const res = await fetch('/integrate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ function: func, limits: limits })
+          body: JSON.stringify({ function: func, limits: limits, , tipo: tipo })
         });
 
         const data = await res.json();
