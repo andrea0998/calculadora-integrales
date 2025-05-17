@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import io
 
-x = symbols('x')
+x, y, z = symbols('x y z')  # ← define las 3 variables desde el inicio
 
 app = Flask(__name__)
 CORS(app)
@@ -54,23 +54,33 @@ def calculate():
                 })
 
         elif tipo == 'doble':
-            y = symbols('y')
             limits = data['limits'].split(';')
-            a, b = map(sympify, limits[0].split(','))
-            c, d = map(sympify, limits[1].split(','))
-            result = integrate(expr, (x, a, b), (y, c, d))
-            steps.append(f"Resultado: ∬ {expr} dx dy = {result}")
-            return jsonify({'result': str(result), 'steps': '<br/><br/>'.join(steps)})
+            if len(limits) != 2:
+                return jsonify({'error': 'Debes proporcionar 2 pares de límites para integral doble (ej: a,b;c,d)'}), 400
+            try:
+                a, b = map(sympify, limits[0].split(','))
+                c, d = map(sympify, limits[1].split(','))
+                result = integrate(expr, (x, a, b), (y, c, d))
+                steps.append(f"Resultado: ∬ {expr} dx dy = {result}")
+                return jsonify({'result': str(result), 'steps': '<br/><br/>'.join(steps)})
+            except:
+                return jsonify({'error': 'Los límites de integración doble son inválidos'}), 400
+
 
         elif tipo == 'triple':
-            y, z = symbols('y z')
             limits = data['limits'].split(';')
-            a, b = map(sympify, limits[0].split(','))
-            c, d = map(sympify, limits[1].split(','))
-            e, f = map(sympify, limits[2].split(','))
-            result = integrate(expr, (x, a, b), (y, c, d), (z, e, f))
-            steps.append(f"Resultado: ∭ {expr} dx dy dz = {result}")
-            return jsonify({'result': str(result), 'steps': '<br/><br/>'.join(steps)})
+            if len(limits) != 3:
+                return jsonify({'error': 'Debes proporcionar 3 pares de límites para integral triple (ej: a,b;c,d;e,f)'}), 400
+            try:
+                a, b = map(sympify, limits[0].split(','))
+                c, d = map(sympify, limits[1].split(','))
+                e, f = map(sympify, limits[2].split(','))
+                result = integrate(expr, (x, a, b), (y, c, d), (z, e, f))
+                steps.append(f"Resultado: ∭ {expr} dx dy dz = {result}")
+                return jsonify({'result': str(result), 'steps': '<br/><br/>'.join(steps)})
+            except:
+                return jsonify({'error': 'Los límites de integración triple son inválidos'}), 400
+
 
         else:
             return jsonify({'error': 'Tipo de integral no soportado'}), 400
