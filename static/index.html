@@ -60,6 +60,7 @@
 
     <label for="tipo">Tipo de integral:</label>
     <select id="tipo">
+      <option value="" selected disabled>Selecciona una opción</option>
       <option value="simple">Simple</option>
       <option value="doble">Doble</option>
       <option value="triple">Triple</option>
@@ -68,11 +69,7 @@
     <label for="functionInput">Función a integrar:</label>
     <input type="text" id="functionInput" placeholder="Ej: x^2 + 4*x">
 
-    <label for="limits">Límites:<br/>
-      <small>
-        Simple: <code>a,b</code> &nbsp;&nbsp; Doble: <code>a,b;c,d</code> &nbsp;&nbsp; Triple: <code>a,b;c,d;e,f</code>
-      </small>
-    </label>
+    <label for="limits">Límites:</label>
     <input type="text" id="limits" placeholder="Ej: 0,1;0,2;0,3">
     <p id="limites-ayuda" style="font-size: 0.85rem; color: #555;"></p>
 
@@ -84,25 +81,38 @@
   </div>
 
   <script>
-    document.getElementById('tipo').addEventListener('change', () => {
-      const tipo = document.getElementById('tipo').value;
-      const ayuda = document.getElementById('limites-ayuda');
-    
+    const tipoSelect = document.getElementById('tipo');
+    const ayuda = document.getElementById('limites-ayuda');
+
+    tipoSelect.addEventListener('change', () => {
+      const tipo = tipoSelect.value;
       if (tipo === 'simple') {
-        ayuda.innerHTML = 'Opcional: escribe dos valores separados por coma (ej: <code>0,2</code>)';
+        ayuda.innerHTML = '📌 Opcional: dos valores separados por coma (ej: <code>0,2</code>)';
       } else if (tipo === 'doble') {
-        ayuda.innerHTML = 'Obligatorio: escribe dos pares de límites (ej: <code>0,1;0,2</code>)';
+        ayuda.innerHTML = '📌 Obligatorio: dos pares de límites (ej: <code>0,1;0,2</code>)';
       } else if (tipo === 'triple') {
-        ayuda.innerHTML = 'Obligatorio: escribe tres pares de límites (ej: <code>0,1;0,2;0,3</code>)';
+        ayuda.innerHTML = '📌 Obligatorio: tres pares de límites (ej: <code>0,1;0,2;0,3</code>)';
+      } else {
+        ayuda.innerHTML = '';
       }
     });
 
     async function calculateIntegral() {
-      const func = document.getElementById('functionInput').value;
-      const limits = document.getElementById('limits').value;
+      const func = document.getElementById('functionInput').value.trim();
+      const limits = document.getElementById('limits').value.trim();
       const tipo = document.getElementById('tipo').value;
       const resultDiv = document.getElementById('result');
       const graphImg = document.getElementById('graph');
+
+      if (!tipo) {
+        resultDiv.innerHTML = '❌ Por favor, selecciona un tipo de integral.';
+        return;
+      }
+
+      if (!func) {
+        resultDiv.innerHTML = '❌ Por favor, escribe una función a integrar.';
+        return;
+      }
 
       resultDiv.innerHTML = 'Calculando...';
       graphImg.style.display = 'none';
@@ -122,7 +132,7 @@
 
         resultDiv.innerHTML = `<b>Resultado:</b> ${data.result}<br/><br/><b>Paso a paso:</b><br/>${data.steps}`;
 
-        // Solo generar gráfica si es integral simple
+        // Solo mostrar gráfica si es integral simple
         if (tipo === 'simple') {
           const graphRes = await fetch('/graph', {
             method: 'POST',
@@ -135,8 +145,6 @@
           const url = URL.createObjectURL(blob);
           graphImg.src = url;
           graphImg.style.display = 'block';
-        } else {
-          graphImg.style.display = 'none';
         }
 
       } catch (err) {
