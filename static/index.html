@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calculadora de Integrales</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- NUEVO -->
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -67,13 +69,8 @@
       white-space: pre-line;
       color: #3d2f4c;
     }
-    img#graph {
+    #plotly-graph {
       margin-top: 2rem;
-      display: none;
-      max-width: 100%;
-      border-radius: 0.5rem;
-      border: 1px solid #d1c3e6;
-      box-shadow: 0 4px 12px rgba(112, 48, 160, 0.1);
     }
     #limites-ayuda {
       font-size: 0.9rem;
@@ -105,7 +102,7 @@
 
     <div id="result">Resultado: </div>
 
-    <img id="graph" src="" alt="Gráfica de la integral" />
+    <div id="plotly-graph"></div> <!-- NUEVO -->
   </div>
 
   <script>
@@ -130,7 +127,6 @@
       const limits = document.getElementById('limits').value.trim();
       const tipo = document.getElementById('tipo').value;
       const resultDiv = document.getElementById('result');
-      const graphImg = document.getElementById('graph');
 
       if (!tipo) {
         resultDiv.innerHTML = '❌ Por favor, selecciona un tipo de integral.';
@@ -143,7 +139,7 @@
       }
 
       resultDiv.innerHTML = '⏳ Calculando...';
-      graphImg.style.display = 'none';
+      document.getElementById('plotly-graph').innerHTML = '';
 
       try {
         const res = await fetch('/integrate', {
@@ -167,11 +163,26 @@
             body: JSON.stringify({ function: func, limits: limits })
           });
 
-          if (!graphRes.ok) throw new Error("No se pudo generar la gráfica");
-          const blob = await graphRes.blob();
-          const url = URL.createObjectURL(blob);
-          graphImg.src = url;
-          graphImg.style.display = 'block';
+          const graphData = await graphRes.json();
+          if (graphData.error) {
+            console.error("Error al generar gráfica:", graphData.error);
+            return;
+          }
+
+          Plotly.newPlot('plotly-graph', [{
+            x: graphData.x,
+            y: graphData.y,
+            type: 'scatter',
+            mode: 'lines',
+            fill: 'tozeroy',
+            line: { color: '#8e44ad' },
+            name: `F(x) = ${graphData.expression}`
+          }], {
+            title: `Gráfica interactiva de la integral`,
+            xaxis: { title: 'x' },
+            yaxis: { title: 'F(x)' },
+            margin: { t: 40 }
+          });
         }
 
       } catch (err) {
