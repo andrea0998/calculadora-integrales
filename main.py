@@ -190,6 +190,39 @@ def graph():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@app.route('/graph2d', methods=['POST'])
+def graph2d():
+    data = request.json
+    try:
+        expr = sympify(data['function'])
+
+        # Extraer límites
+        if 'limits' in data and data['limits']:
+            try:
+                lims = data['limits'].split(';')
+                a, b = map(float, lims[0].split(','))
+                c, d = map(float, lims[1].split(','))
+            except:
+                return jsonify({'error': 'Límites inválidos para integral doble'}), 400
+        else:
+            a, b, c, d = -5, 5, -5, 5
+
+        x_vals = np.linspace(a, b, 40)
+        y_vals = np.linspace(c, d, 40)
+        X, Y = np.meshgrid(x_vals, y_vals)
+
+        f = lambdify((x, y), expr, 'numpy')
+        Z = f(X, Y)
+
+        return jsonify({
+            'x': x_vals.tolist(),
+            'y': y_vals.tolist(),
+            'z': Z.tolist(),
+            'expression': str(expr)
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 if __name__ == '__main__':
