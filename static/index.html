@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>IntegraLab: Calculadora de Integrales</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- NUEVO -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
   <style>
     body {
@@ -20,7 +20,6 @@
       padding: 2.5rem;
       border-radius: 1rem;
       box-shadow: 0 10px 25px rgba(112, 48, 160, 0.1);
-      transition: 0.3s ease;
     }
     h1 {
       text-align: center;
@@ -40,7 +39,6 @@
       border-radius: 0.5rem;
       border: 1px solid #c9b6e4;
       font-size: 1rem;
-      transition: all 0.2s ease;
     }
     input:focus, select:focus {
       border-color: #a770d6;
@@ -54,7 +52,6 @@
       margin-top: 1.5rem;
       font-weight: bold;
       border: none;
-      transition: background 0.2s ease;
     }
     button:hover {
       background-color: #732d91;
@@ -101,14 +98,13 @@
     <button onclick="calculateIntegral()">Calcular</button>
 
     <div id="result">Resultado: </div>
-
-    <div id="plotly-graph"></div> <!-- NUEVO -->
+    <div id="plotly-graph"></div>
   </div>
 
-    <script>
+  <script>
     const tipoSelect = document.getElementById('tipo');
     const ayuda = document.getElementById('limites-ayuda');
-  
+
     tipoSelect.addEventListener('change', () => {
       const tipo = tipoSelect.value;
       if (tipo === 'simple') {
@@ -121,152 +117,106 @@
         ayuda.innerHTML = '';
       }
     });
-  
+
     async function calculateIntegral() {
       const func = document.getElementById('functionInput').value.trim();
       const limits = document.getElementById('limits').value.trim();
       const tipo = document.getElementById('tipo').value;
       const resultDiv = document.getElementById('result');
       const graphDiv = document.getElementById('plotly-graph');
-  
-      if (!tipo) {
-        resultDiv.innerHTML = '❌ Por favor, selecciona un tipo de integral.';
+
+      if (!tipo || !func) {
+        resultDiv.innerHTML = '❌ Por favor, completa todos los campos requeridos.';
         return;
       }
-  
-      if (!func) {
-        resultDiv.innerHTML = '❌ Por favor, escribe una función a integrar.';
-        return;
-      }
-  
+
       resultDiv.innerHTML = '⏳ Calculando...';
       graphDiv.innerHTML = '';
-  
+
       try {
         const res = await fetch('/integrate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ function: func, limits: limits, tipo: tipo })
         });
-  
+
         const data = await res.json();
         if (data.error) {
           resultDiv.innerHTML = '❌ Error: ' + data.error;
           return;
         }
-  
+
         resultDiv.innerHTML = `📊 <b>Resultado:</b> ${data.result}<br/><br/><b>Paso a paso:</b><br/>${data.steps}`;
-  
+
         if (tipo === 'simple') {
           const graphRes = await fetch('/graph', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ function: func, limits: limits })
           });
-  
+
           const graphData = await graphRes.json();
-          if (graphData.error) {
-            console.error("Error al generar gráfica:", graphData.error);
-            return;
-          }
-  
+          if (graphData.error) return;
+
           Plotly.newPlot('plotly-graph', [{
             x: graphData.x,
             y: graphData.y,
             type: 'scatter',
             mode: 'lines',
             fill: 'tozeroy',
-            line: { color: '#8e44ad' },
-            name: `F(x) = ${graphData.expression}`
+            line: { color: '#8e44ad' }
           }], {
-            title: {
-              text: 'Gráfica de la integral',
-              xref: 'paper',
-              yref: 'container',
-              x: 0.5,
-              y: 1.1,
-              xanchor: 'center',
-              yanchor: 'bottom',
-              font: {
-                family: 'Inter, sans-serif',
-                size: 22,
-                color: '#5c3c92'
-              }
-            },
-            margin: { t: 90 },
+            title: { text: 'Gráfica de la integral', x: 0.5 },
             xaxis: { title: 'x' },
-            yaxis: { title: 'F(x)' }
+            yaxis: { title: 'F(x)' },
+            margin: { t: 60 }
           });
-  
+
         } else if (tipo === 'doble') {
           const graphRes = await fetch('/graph2d', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ function: func, limits: limits })
           });
-  
+
           const graphData = await graphRes.json();
-          if (graphData.error) {
-            console.error("Error al generar superficie:", graphData.error);
-            return;
-          }
-  
+          if (graphData.error) return;
+
           Plotly.newPlot('plotly-graph', [{
             x: graphData.x,
             y: graphData.y,
             z: graphData.z,
             type: 'surface',
-            colorscale: 'Purples',
-            name: `f(x, y) = ${graphData.expression}`
+            colorscale: 'Purples'
           }], {
-            title: {
-              text: 'Gráfica de la función f(x, y)',
-              xref: 'paper',
-              yref: 'container',
-              x: 0.5,
-              y: 1.1,
-              xanchor: 'center',
-              yanchor: 'bottom',
-              font: {
-                family: 'Inter, sans-serif',
-                size: 22,
-                color: '#5c3c92'
-              }
-            },
-            margin: { t: 90 },
+            title: { text: 'Gráfica de la función f(x, y)', x: 0.5 },
             scene: {
               xaxis: { title: 'x' },
               yaxis: { title: 'y' },
               zaxis: { title: 'f(x, y)' }
-            }
+            },
+            margin: { t: 60 }
           });
+
         } else if (tipo === 'triple') {
           const graphRes = await fetch('/graph3d', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ function: func, limits: limits })
           });
-        
+
           const graphData = await graphRes.json();
-          if (graphData.error) {
-            console.error("Error al generar superficie 3D:", graphData.error);
-            return;
-          }
-        
+          if (graphData.error) return;
+
           const frames = graphData.frames.map((frame, i) => ({
             name: `z${i}`,
             data: [{
               z: frame.z_data
-            }],
-            layout: {
-              title: {
-                text: `Corte en z = ${frame.z_value.toFixed(2)}`
-              }
-            }
+            }]
           }));
-        
+
           const initialZ = graphData.frames[0].z_data;
-        
+
           Plotly.newPlot('plotly-graph', [{
             x: graphData.x,
             y: graphData.y,
@@ -276,17 +226,9 @@
           }], {
             title: {
               text: `Corte en z = ${graphData.frames[0].z_value.toFixed(2)}`,
-              x: 0.5,
-              y: 1.1,
-              xanchor: 'center',
-              yanchor: 'bottom',
-              font: {
-                family: 'Inter, sans-serif',
-                size: 22,
-                color: '#5c3c92'
-              }
+              x: 0.5
             },
-            margin: { t: 90 },
+            margin: { t: 60 },
             scene: {
               xaxis: { title: 'x' },
               yaxis: { title: 'y' },
@@ -301,7 +243,7 @@
                 args: [null, {
                   fromcurrent: true,
                   frame: { duration: 800, redraw: true },
-                  transition: { duration: 500 }
+                  transition: { duration: 300 }
                 }]
               }]
             }],
@@ -317,9 +259,7 @@
                 }]
               }))
             }]
-          }, {
-            frames: frames
-          });
+          }, frames); // CORREGIDO: los frames van como 3er argumento
         }
 
       } catch (err) {
@@ -330,4 +270,3 @@
   </script>
 </body>
 </html>
-
