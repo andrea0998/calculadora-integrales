@@ -226,9 +226,17 @@
           }], {
             title: {
               text: `Corte en z = ${graphData.frames[0].z_value.toFixed(2)}`,
-              x: 0.5
+              x: 0.5,
+              y: 1.1,
+              xanchor: 'center',
+              yanchor: 'bottom',
+              font: {
+                family: 'Inter, sans-serif',
+                size: 22,
+                color: '#5c3c92'
+              }
             },
-            margin: { t: 60 },
+            margin: { t: 90 },
             scene: {
               xaxis: { title: 'x' },
               yaxis: { title: 'y' },
@@ -243,7 +251,7 @@
                 args: [null, {
                   fromcurrent: true,
                   frame: { duration: 800, redraw: true },
-                  transition: { duration: 300 }
+                  transition: { duration: 500 }
                 }]
               }]
             }],
@@ -259,8 +267,10 @@
                 }]
               }))
             }]
-          }, frames); // CORREGIDO: los frames van como 3er argumento
-        }
+          }, {
+            // Este tercer parámetro es el que debe contener los frames
+            frames: frames
+          });
 
       } catch (err) {
         resultDiv.innerHTML = '❌ No se pudo conectar con el servidor.';
