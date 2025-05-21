@@ -178,10 +178,24 @@
             line: { color: '#8e44ad' },
             name: `F(x) = ${graphData.expression}`
           }], {
-            title: `Gráfica de la integral`,
+            title: {
+              text: 'Gráfica de la integral',
+              xref: 'paper',
+              yref: 'container',
+              x: 0.5,
+              y: 1.1,
+              xanchor: 'center',
+              yanchor: 'bottom',
+              font: {
+                family: 'Arial, sans-serif',
+                size: 22,
+                color: '#5c3c92',
+                weight: 'bold'
+              }
+            },
+            margin: { t: 90 },
             xaxis: { title: 'x' },
-            yaxis: { title: 'F(x)' },
-            margin: { t: 40 }
+            yaxis: { title: 'F(x)' }
           });
         }
 
