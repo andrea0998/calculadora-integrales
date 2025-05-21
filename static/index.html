@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IntegraLab</title>
+  <title>IntegraLab: Calculadora de Integrales</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- NUEVO -->
 
@@ -81,7 +81,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>IntegraLab</h1>
+    <h1>IntegraLab: Calculadora de Integrales</h1>
 
     <label for="tipo">Tipo de integral:</label>
     <select id="tipo">
@@ -112,11 +112,11 @@
     tipoSelect.addEventListener('change', () => {
       const tipo = tipoSelect.value;
       if (tipo === 'simple') {
-        ayuda.innerHTML = '📌 Opcional: dos valores separados por coma (ej: <code>0,2</code>)';
+        ayuda.innerHTML = '📌 Opcional: dos valores separados por coma (ej: <code>a,b</code>)';
       } else if (tipo === 'doble') {
-        ayuda.innerHTML = '📌 Obligatorio: dos pares de límites (ej: <code>0,1;0,2</code>)';
+        ayuda.innerHTML = '📌 Obligatorio: dos pares de límites (ej: <code>a,b;c,d</code>)';
       } else if (tipo === 'triple') {
-        ayuda.innerHTML = '📌 Obligatorio: tres pares de límites (ej: <code>0,1;0,2;0,3</code>)';
+        ayuda.innerHTML = '📌 Obligatorio: tres pares de límites (ej: <code>a,b;c,d;e,f</code>)';
       } else {
         ayuda.innerHTML = '';
       }
