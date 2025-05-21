@@ -223,6 +223,40 @@ def graph2d():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+        
+@app.route('/graph3d', methods=['POST'])
+def graph3d():
+    data = request.json
+    try:
+        expr = sympify(data['function'])
+        limits = data['limits'].split(';')
+        if len(limits) != 3:
+            return jsonify({'error': 'Debes proporcionar 3 pares de límites (ej: a,b;c,d;e,f)'}), 400
+
+        a, b = map(float, limits[0].split(','))
+        c, d = map(float, limits[1].split(','))
+        e, f = map(float, limits[2].split(','))
+
+        # Valor medio de z
+        z0 = (e + f) / 2
+
+        x_vals = np.linspace(a, b, 40)
+        y_vals = np.linspace(c, d, 40)
+        X, Y = np.meshgrid(x_vals, y_vals)
+
+        f_xyz = lambdify((x, y, z), expr, 'numpy')
+        Z = f_xyz(X, Y, z0)
+
+        return jsonify({
+            'x': x_vals.tolist(),
+            'y': y_vals.tolist(),
+            'z_values': Z.tolist(),
+            'expression': str(expr),
+            'z_fixed': z0
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 if __name__ == '__main__':
