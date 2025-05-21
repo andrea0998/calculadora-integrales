@@ -241,46 +241,86 @@
             }
           });
         } else if (tipo === 'triple') {
-        const graphRes = await fetch('/graph3d', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ function: func, limits: limits })
-        });
-      
-        const graphData = await graphRes.json();
-        if (graphData.error) {
-          console.error("Error al generar corte 3D:", graphData.error);
-          return;
-        }
-      
-        Plotly.newPlot('plotly-graph', [{
-          x: graphData.x,
-          y: graphData.y,
-          z: graphData.z_values,
-          type: 'surface',
-          colorscale: 'Viridis',
-          name: `f(x, y, z=${graphData.z_fixed})`
-        }], {
-          title: {
-            text: `Corte en z = ${graphData.z_fixed}`,
-            x: 0.5,
-            y: 1.1,
-            xanchor: 'center',
-            yanchor: 'bottom',
-            font: {
-              family: 'Inter, sans-serif',
-              size: 22,
-              color: '#5c3c92'
-            }
-          },
-          margin: { t: 90 },
-          scene: {
-            xaxis: { title: 'x' },
-            yaxis: { title: 'y' },
-            zaxis: { title: 'f(x, y, z₀)' }
+          const graphRes = await fetch('/graph3d', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ function: func, limits: limits })
+          });
+        
+          const graphData = await graphRes.json();
+          if (graphData.error) {
+            console.error("Error al generar superficie 3D:", graphData.error);
+            return;
           }
-        });
-      }
+        
+          const frames = graphData.frames.map((frame, i) => ({
+            name: `z${i}`,
+            data: [{
+              z: frame.z_data
+            }],
+            layout: {
+              title: {
+                text: `Corte en z = ${frame.z_value.toFixed(2)}`
+              }
+            }
+          }));
+        
+          const initialZ = graphData.frames[0].z_data;
+        
+          Plotly.newPlot('plotly-graph', [{
+            x: graphData.x,
+            y: graphData.y,
+            z: initialZ,
+            type: 'surface',
+            colorscale: 'Viridis'
+          }], {
+            title: {
+              text: `Corte en z = ${graphData.frames[0].z_value.toFixed(2)}`,
+              x: 0.5,
+              y: 1.1,
+              xanchor: 'center',
+              yanchor: 'bottom',
+              font: {
+                family: 'Inter, sans-serif',
+                size: 22,
+                color: '#5c3c92'
+              }
+            },
+            margin: { t: 90 },
+            scene: {
+              xaxis: { title: 'x' },
+              yaxis: { title: 'y' },
+              zaxis: { title: 'f(x, y, z₀)' }
+            },
+            updatemenus: [{
+              type: 'buttons',
+              showactive: false,
+              buttons: [{
+                label: 'Play',
+                method: 'animate',
+                args: [null, {
+                  fromcurrent: true,
+                  frame: { duration: 800, redraw: true },
+                  transition: { duration: 500 }
+                }]
+              }]
+            }],
+            sliders: [{
+              active: 0,
+              steps: frames.map((frame, i) => ({
+                label: `z = ${graphData.frames[i].z_value.toFixed(2)}`,
+                method: 'animate',
+                args: [[`z${i}`], {
+                  mode: 'immediate',
+                  frame: { duration: 500, redraw: true },
+                  transition: { duration: 300 }
+                }]
+              }))
+            }]
+          }, {
+            frames: frames
+          });
+        }
 
       } catch (err) {
         resultDiv.innerHTML = '❌ No se pudo conectar con el servidor.';
