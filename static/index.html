@@ -240,6 +240,46 @@
             zaxis: { title: 'f(x, y)' }
           }
         });
+      } else if (tipo === 'triple') {
+        const graphRes = await fetch('/graph3d', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ function: func, limits: limits })
+        });
+      
+        const graphData = await graphRes.json();
+        if (graphData.error) {
+          console.error("Error al generar corte 3D:", graphData.error);
+          return;
+        }
+      
+        Plotly.newPlot('plotly-graph', [{
+          x: graphData.x,
+          y: graphData.y,
+          z: graphData.z_values,
+          type: 'surface',
+          colorscale: 'Viridis',
+          name: `f(x, y, z=${graphData.z_fixed})`
+        }], {
+          title: {
+            text: `Corte en z = ${graphData.z_fixed}`,
+            x: 0.5,
+            y: 1.1,
+            xanchor: 'center',
+            yanchor: 'bottom',
+            font: {
+              family: 'Inter, sans-serif',
+              size: 22,
+              color: '#5c3c92'
+            }
+          },
+          margin: { t: 90 },
+          scene: {
+            xaxis: { title: 'x' },
+            yaxis: { title: 'y' },
+            zaxis: { title: 'f(x, y, z₀)' }
+          }
+        });
       }
 
     } catch (err) {
