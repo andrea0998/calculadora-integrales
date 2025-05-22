@@ -237,42 +237,26 @@ def graph3d():
         c, d = map(float, limits[1].split(','))
         e, f = map(float, limits[2].split(','))
 
-        # Crea una animación de cortes a distintos valores de z
-        z_slices = np.linspace(e, f, 10)
+        # Valor medio de z
+        z0 = (e + f) / 2
+
         x_vals = np.linspace(a, b, 40)
         y_vals = np.linspace(c, d, 40)
         X, Y = np.meshgrid(x_vals, y_vals)
 
         f_xyz = lambdify((x, y, z), expr, 'numpy')
-        frames = []
-
-        for z_val in z_slices:
-            try:
-                Z = f_xyz(X, Y, z_val)
-                if not np.shape(Z) == X.shape:
-                    raise ValueError("Shape mismatch al evaluar Z")
-                if np.any(np.isnan(Z)) or np.any(np.isinf(Z)):
-                    raise ValueError("Valores inválidos en Z")
-                frames.append({
-                    'z_value': float(z_val),
-                    'z_data': Z.tolist()
-                })
-            except Exception as err:
-                # Salta este corte si no se puede calcular
-                continue
-
-        if not frames:
-            return jsonify({'error': 'No se pudieron generar cortes válidos para z'}), 400
+        Z = f_xyz(X, Y, z0)
 
         return jsonify({
             'x': x_vals.tolist(),
             'y': y_vals.tolist(),
-            'frames': frames
+            'z_values': Z.tolist(),
+            'expression': str(expr),
+            'z_fixed': z0
         })
 
     except Exception as e:
-        return jsonify({'error': f'Error en el servidor: {e}'}), 400
-
+        return jsonify({'error': str(e)}), 400
 
 
 if __name__ == '__main__':
