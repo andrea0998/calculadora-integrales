@@ -223,7 +223,7 @@ def graph2d():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-        
+
 @app.route('/graph3d', methods=['POST'])
 def graph3d():
     data = request.json
